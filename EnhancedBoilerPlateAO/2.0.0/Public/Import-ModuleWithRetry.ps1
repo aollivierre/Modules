@@ -57,7 +57,7 @@ function Import-ModuleWithRetry {
                 Import-Module $ModulePath -ErrorAction Stop -Global
                 # Import-Module $ModulePath -ErrorAction Stop
                 $isModuleLoaded = $true
-                write-host "Module: $ModulePath imported successfully."
+                Write-Host "Module: $ModulePath imported successfully."
             }
             catch {
                 $errorMsg = $_.Exception.Message
@@ -79,7 +79,7 @@ function Import-ModuleWithRetry {
 
     End {
         if ($isModuleLoaded) {
-            write-host "Module: $ModulePath loaded successfully."
+            Write-Host "Module: $ModulePath loaded successfully."
         }
         else {
             Write-Host -Message "Failed to load module $ModulePath within the maximum retry limit."

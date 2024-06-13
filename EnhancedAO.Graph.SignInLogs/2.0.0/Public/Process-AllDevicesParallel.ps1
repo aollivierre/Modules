@@ -164,3 +164,40 @@
 
 # # Output the results
 # $results
+
+
+
+
+# function Process-AllDevicesParallel {
+#     param (
+#         [Parameter(Mandatory = $true)]
+#         [array]$Json,
+#         [Parameter(Mandatory = $true)]
+#         [hashtable]$Headers
+#     )
+
+#     $results = $Json | ForEach-Object -Parallel {
+#         # Import and install necessary modules
+
+
+      
+
+#         # Initialize results in each runspace
+#         $localContext = Initialize-Results
+
+#         if ($_.userDisplayName -eq "On-Premises Directory Synchronization Service Account") {
+#             return
+#         }
+
+#         try {
+#             Process-DeviceItem -Item $_ -Context $localContext -Headers $using:Headers
+#         } catch {
+#             Handle-Error -ErrorRecord $_
+#         }
+
+#         return $localContext.Results
+#     } -ThrottleLimit 4
+
+#     return $results
+# }
+

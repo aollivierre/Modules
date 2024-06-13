@@ -17,7 +17,7 @@ function Write-EnhancedLog {
     # Add timestamp, computer name, and log level to the message
     $formattedMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $($env:COMPUTERNAME): [$Level] [$Caller] $Message"
     
-    # Set foreground color based on log level
+    # # Set foreground color based on log level
     switch ($Level) {
         'DEBUG' { $ForegroundColor = [ConsoleColor]::Gray } # Added level
         'INFO' { $ForegroundColor = [ConsoleColor]::Green }
@@ -28,7 +28,7 @@ function Write-EnhancedLog {
         default { $ForegroundColor = [ConsoleColor]::White } # Default case for unknown levels
     }
     
-    # Write the message with the specified colors
+    # # Write the message with the specified colors
     $currentForegroundColor = $Host.UI.RawUI.ForegroundColor
     $Host.UI.RawUI.ForegroundColor = $ForegroundColor
     Write-Host $formattedMessage

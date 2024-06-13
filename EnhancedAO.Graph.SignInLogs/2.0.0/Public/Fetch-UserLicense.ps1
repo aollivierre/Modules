@@ -14,6 +14,6 @@ function Fetch-UserLicense {
         return $userLicenses
     } catch {
         Handle-Error -ErrorRecord $_
-        return $null
+        # return $null
     }
 }

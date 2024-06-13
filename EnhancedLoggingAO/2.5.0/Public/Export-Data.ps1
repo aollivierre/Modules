@@ -127,7 +127,7 @@
 #         $retryCount = 0
 #         $isModuleLoaded = $false
 #         # Write-EnhancedLog "Starting to import module from path: $ModulePath" -Level "INFO"
-#         Write-host "Starting to import module from path: $ModulePath"
+#         Write-Host "Starting to import module from path: $ModulePath"
 #     }
 
 #     Process {
@@ -139,7 +139,7 @@
 #             }
 #             catch {
 #                 # Write-EnhancedLog "Attempt $retryCount to load module failed. Waiting $WaitTimeSeconds seconds before retrying." -Level "WARNING"
-#                 Write-host "Attempt $retryCount to load module failed. Waiting $WaitTimeSeconds seconds before retrying."
+#                 Write-Host "Attempt $retryCount to load module failed. Waiting $WaitTimeSeconds seconds before retrying."
 #                 Start-Sleep -Seconds $WaitTimeSeconds
 #             }
 #             finally {
@@ -148,7 +148,7 @@
 
 #             if ($retryCount -eq $MaxRetries -and -not $isModuleLoaded) {
 #                 # Write-EnhancedLog "Failed to import module after $MaxRetries retries." -Level "ERROR"
-#                 Write-host "Failed to import module after $MaxRetries retries."
+#                 Write-Host "Failed to import module after $MaxRetries retries."
 #                 break
 #             }
 #         }
@@ -160,7 +160,7 @@
 #         }
 #         else {
 #             # Write-EnhancedLog "Failed to load module $ModulePath within the maximum retry limit." -Level "CRITICAL"
-#             Write-host "Failed to load module $ModulePath within the maximum retry limit."
+#             Write-Host "Failed to load module $ModulePath within the maximum retry limit."
 #         }
 #     }
 # }

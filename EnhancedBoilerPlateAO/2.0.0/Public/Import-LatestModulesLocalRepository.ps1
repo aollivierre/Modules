@@ -36,7 +36,7 @@ function Import-LatestModulesLocalRepository {
         Write-Host "moduleDirectories is $moduleDirectories"
 
         # Log the number of discovered module directories
-        write-host "Discovered module directories: $($moduleDirectories.Count)"  -ForegroundColor ([ConsoleColor]::Cyan)
+        Write-Host "Discovered module directories: $($moduleDirectories.Count)"  -ForegroundColor ([ConsoleColor]::Cyan)
     }
 
     Process {
@@ -45,7 +45,7 @@ function Import-LatestModulesLocalRepository {
             $latestVersionDir = Get-ChildItem -Path $moduleDir.FullName -Directory | Sort-Object Name -Descending | Select-Object -First 1
 
             if ($null -eq $latestVersionDir) {
-                write-host "No version directories found for module: $($moduleDir.Name)" -ForegroundColor ([ConsoleColor]::Red)
+                Write-Host "No version directories found for module: $($moduleDir.Name)" -ForegroundColor ([ConsoleColor]::Red)
                 continue
             }
 
@@ -58,19 +58,19 @@ function Import-LatestModulesLocalRepository {
                 try {
                     Import-ModuleWithRetry -ModulePath $modulePath
                     # Import-Module $ModulePath -ErrorAction Stop -Verbose
-                    write-host "Successfully imported module: $($moduleDir.Name) from version: $($latestVersionDir.Name)"  -ForegroundColor ([ConsoleColor]::Green)
+                    Write-Host "Successfully imported module: $($moduleDir.Name) from version: $($latestVersionDir.Name)"  -ForegroundColor ([ConsoleColor]::Green)
                 }
                 catch {
-                    write-host "Failed to import module: $($moduleDir.Name) from version: $($latestVersionDir.Name). Error: $_"  -ForegroundColor ([ConsoleColor]::Red)
+                    Write-Host "Failed to import module: $($moduleDir.Name) from version: $($latestVersionDir.Name). Error: $_"  -ForegroundColor ([ConsoleColor]::Red)
                 }
             }
             else {
-                write-host  "Module file not found: $modulePath" -ForegroundColor ([ConsoleColor]::Red)
+                Write-Host  "Module file not found: $modulePath" -ForegroundColor ([ConsoleColor]::Red)
             }
         }
     }
 
     End {
-        write-host "Module import process completed using Import-LatestModulesLocalRepository from $moduleDirectories" -ForegroundColor ([ConsoleColor]::Cyan)
+        Write-Host "Module import process completed using Import-LatestModulesLocalRepository from $moduleDirectories" -ForegroundColor ([ConsoleColor]::Cyan)
     }
 }

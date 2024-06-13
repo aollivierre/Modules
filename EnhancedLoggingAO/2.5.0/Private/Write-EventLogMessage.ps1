@@ -31,15 +31,15 @@ function Write-EventLogMessage {
             $eventLog.WriteEntry($Message, [System.Diagnostics.EventLogEntryType]::Information, $EventID)
         }
     
-        # Write-host "Event log entry created: $Message" 
+        # Write-Host "Event log entry created: $Message" 
     }
     catch {
-        Write-host "Error creating event log entry: $_" 
+        Write-Host "Error creating event log entry: $_" 
         $hadError = $true
     }
     
     if (-not $hadError) {
-        # Write-host "Event log message writing completed successfully."
+        # Write-Host "Event log message writing completed successfully."
     }
 }
     

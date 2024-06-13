@@ -54,7 +54,9 @@ function Verify-CopyOperation {
     end {
         if ($verificationResults.Count -gt 0) {
             Write-EnhancedLog -Message "Discrepancies found. See detailed log." -Level "WARNING" -ForegroundColor ([System.ConsoleColor]::Yellow)
-            $verificationResults | Format-Table -AutoSize | Out-String | ForEach-Object { Write-EnhancedLog -Message $_ -Level "INFO" }
+            $verificationResults | Format-Table -AutoSize | Out-String | ForEach-Object { 
+                Write-EnhancedLog -Message $_ -Level "INFO" 
+            }
         }
         else {
             Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "INFO" -ForegroundColor ([System.ConsoleColor]::Green)
