@@ -180,6 +180,7 @@ function Upload-IntuneWinPackage {
             RequirementRule          = $RequirementRule
             InformationURL           = $config.InformationURL
             PrivacyURL               = $config.PrivacyURL
+            Verbose                  = $true
         }
 
         # Log-Params -Params $IntuneAppParams
