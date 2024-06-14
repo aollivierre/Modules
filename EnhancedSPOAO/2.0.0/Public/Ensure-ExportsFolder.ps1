@@ -19,8 +19,15 @@ function Ensure-ExportsFolder {
         Write-EnhancedLog -Message "Created base exports folder at: $ExportsBaseFolderPath" -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
     }
 
+
+    if (-Not (Test-Path -Path $ExportsFolderPath)) {
+        # Create the base exports folder
+        New-Item -ItemType Directory -Path $ExportsFolderPath | Out-Null
+        Write-EnhancedLog -Message "Created base exports folder at: $ExportsFolderPath" -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+    }
+
     # Ensure the subfolder is clean
-    # Clean-ExportsFolder -FolderPath $ExportsFolderPath
+    Clean-ExportsFolder -FolderPath $ExportsFolderPath
 
     # Return the full path of the exports folder
     return $ExportsFolderPath
