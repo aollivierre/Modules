@@ -54,7 +54,7 @@ function Import-ModuleWithRetry {
         while (-not $isModuleLoaded -and $retryCount -lt $MaxRetries) {
             try {
                 # Import-Module $ModulePath -ErrorAction Stop -Verbose -Global
-                Import-Module $ModulePath -ErrorAction Stop -Global
+                Import-Module $ModulePath -ErrorAction Stop -Global -Force:$true
                 # Import-Module $ModulePath -ErrorAction Stop
                 $isModuleLoaded = $true
                 Write-Host "Module: $ModulePath imported successfully."
