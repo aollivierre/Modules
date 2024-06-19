@@ -10,8 +10,8 @@ function Handle-Error {
         $fullErrorDetails = $ErrorRecord.Exception | Format-List * -Force | Out-String
     }
 
-    Write-EnhancedLog -Message "Exception Message: $($ErrorRecord.Exception.Message)" -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
-    Write-EnhancedLog -Message "Full Exception: $fullErrorDetails" -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
+    Write-EnhancedLog -Message "Exception Message: $($ErrorRecord.Exception.Message)" -Level "ERROR"
+    Write-EnhancedLog -Message "Full Exception: $fullErrorDetails" -Level "ERROR"
 }
 
 # # Example usage

@@ -1,5 +1,5 @@
     # Define the function
-    function ExportCertificatetoFile {
+    function ExportCertificatetoCER {
         param (
             [Parameter(Mandatory = $true)]
             [string]$CertThumbprint,
