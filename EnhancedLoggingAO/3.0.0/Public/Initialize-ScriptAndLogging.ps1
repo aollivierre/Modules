@@ -46,15 +46,6 @@ function Initialize-ScriptAndLogging {
 }
 
 # Example usage of Initialize-ScriptAndLogging
-try {
-    $initResult = Initialize-ScriptAndLogging
-    Write-Host "Initialization successful. Log file path: $($initResult.LogFile)" -ForegroundColor Green
-} catch {
-    Write-Host "Initialization failed: $_" -ForegroundColor Red
-}
-
-
-# # Example usage of Initialize-ScriptAndLogging
 # try {
 #     $initResult = Initialize-ScriptAndLogging
 #     Write-Host "Initialization successful. Log file path: $($initResult.LogFile)" -ForegroundColor Green
