@@ -17,7 +17,7 @@ function Generate-PII-RemovedReport {
 
     # Output totals to console
     Write-EnhancedLog -Message "Total users with PII Removed (external Azure AD/Entra ID tenants): $($piiRemovedResults.Count)" -Level "Warning"
-    Write-EnhancedLog -Message "Generated report for users with PII Removed (external Azure AD/Entra ID tenants." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+    Write-EnhancedLog -Message "Generated report for users with PII Removed (external Azure AD/Entra ID tenants." -Level "INFO"
 }
 
 # # Example usage

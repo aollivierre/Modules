@@ -10,8 +10,8 @@ function Find-LatestJsonFile {
     if ($jsonFiles.Count -gt 0) {
         return $jsonFiles[0].FullName
     } else {
-        Write-EnhancedLog -Message "No JSON files found in $Directory." -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
-        return $null
+        Write-EnhancedLog -Message "No JSON files found in $Directory." -Level "ERROR"
+        # return $null
     }
 }
 

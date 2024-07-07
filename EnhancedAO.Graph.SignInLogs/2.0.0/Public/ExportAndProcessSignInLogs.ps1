@@ -22,7 +22,8 @@ function ExportAndProcessSignInLogs {
         }
         
         # Call the function with splatted parameters
-        # Export-SignInLogs @ExportSignInLogsparams (uncomment if you want to export fresh sign-in logs to a new JSON file)
+        # (uncomment if you want to export fresh sign-in logs to a new JSON file)
+        # Export-SignInLogs @ExportSignInLogsparams
 
         $subFolderPath = Join-Path -Path $ScriptRoot -ChildPath $ExportsFolderName
         $subFolderPath = Join-Path -Path $subFolderPath -ChildPath $ExportSubFolderName

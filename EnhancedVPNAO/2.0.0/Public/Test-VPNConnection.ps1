@@ -9,15 +9,16 @@ function Test-VPNConnection {
         # Check if the VPN connection exists
         $vpnConnection = Get-VpnConnection -Name $ConnectionName -ErrorAction SilentlyContinue
         if ($vpnConnection) {
-            Write-EnhancedLog -Message "VPN connection '$ConnectionName' exists." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+            Write-EnhancedLog -Message "VPN connection '$ConnectionName' exists." -Level "INFO"
             return $true
         } else {
-            Write-EnhancedLog -Message "VPN connection '$ConnectionName' does not exist." -Level "INFO" -ForegroundColor ([ConsoleColor]::Yellow)
+            Write-EnhancedLog -Message "VPN connection '$ConnectionName' does not exist." -Level "INFO"
             return $false
         }
     }
     catch {
-        Write-EnhancedLog -Message "An error occurred while checking VPN connection '$ConnectionName': $_" -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
+        Handle-Error -ErrorRecord $_
+        Write-EnhancedLog -Message "An error occurred while checking VPN connection '$ConnectionName'." -Level "ERROR"
         throw $_
     }
 }

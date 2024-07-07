@@ -20,10 +20,10 @@ function Generate-LicenseReports {
     $nonPremiumLicenses | Export-Csv "$PSScriptRoot/$ExportsFolderName/Report_NonPremiumLicenses.csv" -NoTypeInformation
 
     # Output totals to console
-    Write-EnhancedLog -Message "Total users with Business Premium licenses: $($premiumLicenses.Count)" -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
-    Write-EnhancedLog -Message "Total users without Business Premium licenses: $($nonPremiumLicenses.Count)" -Level "INFO" -ForegroundColor ([ConsoleColor]::Red)
+    Write-EnhancedLog -Message "Total users with Business Premium licenses: $($premiumLicenses.Count)" -Level "INFO"
+    Write-EnhancedLog -Message "Total users without Business Premium licenses: $($nonPremiumLicenses.Count)" -Level "INFO"
 
-    Write-EnhancedLog -Message "Generated reports for users with and without Business Premium licenses." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+    Write-EnhancedLog -Message "Generated reports for users with and without Business Premium licenses." -Level "INFO"
 }
 
 # # Example usage

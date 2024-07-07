@@ -24,7 +24,7 @@ function Export-SignInLogs {
 
     # Check if there are no sign-in logs
     if ($signInLogs.Count -eq 0) {
-        Write-EnhancedLog -Message "NO sign-in logs found." -Level "WARNING" -ForegroundColor ([ConsoleColor]::Yellow)
+        Write-EnhancedLog -Message "NO sign-in logs found." -Level "WARNING"
         return
     }
 
