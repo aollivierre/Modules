@@ -15,7 +15,7 @@ function New-VPNConnection {
     try {
         # Validate if VPN connection already exists
         if (Test-VPNConnection -ConnectionName $ConnectionName) {
-            Write-EnhancedLog -Message "VPN connection '$ConnectionName' already exists." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+            Write-EnhancedLog -Message "VPN connection '$ConnectionName' already exists." -Level "INFO"
             return
         }
 
@@ -24,14 +24,14 @@ function New-VPNConnection {
 
         # Validate if VPN connection was created successfully
         if (Test-VPNConnection -ConnectionName $ConnectionName) {
-            Write-EnhancedLog -Message "VPN connection '$ConnectionName' created successfully." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+            Write-EnhancedLog -Message "VPN connection '$ConnectionName' created successfully." -Level "INFO"
         } else {
-            Write-EnhancedLog -Message "Failed to create VPN connection '$ConnectionName'." -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
+            Write-EnhancedLog -Message "Failed to create VPN connection '$ConnectionName'." -Level "ERROR"
             throw "Failed to create VPN connection '$ConnectionName'."
         }
     }
     catch {
-        Write-EnhancedLog -Message "An error occurred while creating VPN connection '$ConnectionName': $_" -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
+        Write-EnhancedLog -Message "An error occurred while creating VPN connection '$ConnectionName': $_" -Level "ERROR"
         throw $_
     }
 }
