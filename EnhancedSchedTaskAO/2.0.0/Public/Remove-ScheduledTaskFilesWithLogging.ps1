@@ -1,32 +1,50 @@
 function Remove-ScheduledTaskFilesWithLogging {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Path
     )
 
-    try {
-        # Validate before removal
-        $existsBefore = Validate-PathExistsWithLogging -Path $Path
-
-        if ($existsBefore) {
-            Write-EnhancedLog -Message "Calling Remove-Item for path: $Path" -Level "INFO" -ForegroundColor ([ConsoleColor]::Yellow)
-            Remove-Item -Path $Path -Recurse -Force
-            Write-EnhancedLog -Message "Remove-Item done for path: $Path" -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
-        } else {
-            Write-EnhancedLog -Message "Path $Path does not exist. No action taken." -Level "WARNING" -ForegroundColor ([ConsoleColor]::Yellow)
-        }
-
-        # Validate after removal
-        $existsAfter = Validate-PathExistsWithLogging -Path $Path
-
-        if ($existsAfter) {
-            Write-EnhancedLog -Message "Path $Path still exists after attempting to remove. Manual intervention may be required." -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
-        } else {
-            Write-EnhancedLog -Message "Path $Path successfully removed." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+    Begin {
+        Write-EnhancedLog -Message "Starting Remove-ScheduledTaskFilesWithLogging function" -Level "INFO"
+        Log-Params -Params @{
+            Path = $Path
         }
     }
-    catch {
-        Write-EnhancedLog -Message "Error during Remove-Item for path: $Path. Error: $_" -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
-        throw $_
+
+    Process {
+        try {
+            # Validate before removal
+            $existsBefore = Validate-PathExistsWithLogging -Path $Path
+
+            if ($existsBefore) {
+                Write-EnhancedLog -Message "Calling Remove-Item for path: $Path" -Level "INFO"
+                Remove-Item -Path $Path -Recurse -Force
+                Write-EnhancedLog -Message "Remove-Item done for path: $Path" -Level "INFO"
+            } else {
+                Write-EnhancedLog -Message "Path $Path does not exist. No action taken." -Level "WARNING"
+            }
+
+            # Validate after removal
+            $existsAfter = Validate-PathExistsWithLogging -Path $Path
+
+            # $DBG
+
+            if ($existsAfter) {
+                Write-EnhancedLog -Message "Path $Path still exists after attempting to remove. Manual intervention may be required." -Level "ERROR"
+            } else {
+                Write-EnhancedLog -Message "Path $Path successfully removed." -Level "INFO"
+            }
+        } catch {
+            Write-EnhancedLog -Message "Error during Remove-Item for path: $Path. Error: $($_.Exception.Message)" -Level "ERROR"
+            Handle-Error -ErrorRecord $_
+        }
+    }
+
+    End {
+        Write-EnhancedLog -Message "Exiting Remove-ScheduledTaskFilesWithLogging function" -Level "INFO"
     }
 }
+
+
+# Remove-ScheduledTaskFilesWithLogging -Path "C:\Path\To\ScheduledTaskFiles"

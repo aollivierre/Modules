@@ -1,8 +1,7 @@
-
 function Verify-CopyOperation {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [string]$SourcePath,
 
         [Parameter(Mandatory = $true)]
@@ -10,7 +9,12 @@ function Verify-CopyOperation {
     )
 
     begin {
-        Write-EnhancedLog -Message "Verifying copy operation..." -Level "INFO" -ForegroundColor ([System.ConsoleColor]::Cyan)
+        Write-EnhancedLog -Message "Verifying copy operation..." -Level "INFO"
+        Log-Params -Params @{
+            SourcePath = $SourcePath
+            DestinationPath = $DestinationPath
+        }
+
         $sourceItems = Get-ChildItem -Path $SourcePath -Recurse
         $destinationItems = Get-ChildItem -Path $DestinationPath -Recurse
 
@@ -47,22 +51,35 @@ function Verify-CopyOperation {
             }
         }
         catch {
-            Write-EnhancedLog -Message "Error during verification process: $_" -Level "ERROR" -ForegroundColor ([System.ConsoleColor]::Red)
+            Write-EnhancedLog -Message "Error during verification process: $($_.Exception.Message)" -Level "ERROR"
+            Handle-Error -ErrorRecord $_
         }
     }
 
     end {
         if ($verificationResults.Count -gt 0) {
-            Write-EnhancedLog -Message "Discrepancies found. See detailed log." -Level "WARNING" -ForegroundColor ([System.ConsoleColor]::Yellow)
+            Write-EnhancedLog -Message "Discrepancies found. See detailed log." -Level "WARNING"
             $verificationResults | Format-Table -AutoSize | Out-String | ForEach-Object { 
                 Write-EnhancedLog -Message $_ -Level "INFO" 
             }
+
+            #Uncomment when troubelshooting
+            $verificationResults | Out-GridView
         }
         else {
-            Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "INFO" -ForegroundColor ([System.ConsoleColor]::Green)
+            Write-EnhancedLog -Message "All items verified successfully. No discrepancies found." -Level "INFO"
         }
 
-        Write-EnhancedLog -Message ("Total items in source: " + $sourceItems.Count) -Level "INFO" -ForegroundColor ([System.ConsoleColor]::Cyan)
-        Write-EnhancedLog -Message ("Total items in destination: " + $destinationItems.Count) -Level "INFO" -ForegroundColor ([System.ConsoleColor]::Cyan)
+        Write-EnhancedLog -Message ("Total items in source: " + $sourceItems.Count) -Level "INFO"
+        Write-EnhancedLog -Message ("Total items in destination: " + $destinationItems.Count) -Level "INFO"
     }
 }
+
+
+# # Define the source and destination paths
+# $sourcePath = "C:\Source"
+# $destinationPath = "C:\Destination"
+
+# # Example usage of the Verify-CopyOperation function
+# Verify-CopyOperation -SourcePath $sourcePath -DestinationPath $destinationPath
+

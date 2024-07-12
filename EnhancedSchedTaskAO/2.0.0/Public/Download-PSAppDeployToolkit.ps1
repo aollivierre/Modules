@@ -1,36 +1,38 @@
-
 function Download-PSAppDeployToolkit {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $true)]
         [string]$GithubRepository,
 
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $true)]
         [string]$FilenamePatternMatch,
 
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $true)]
         [string]$ZipExtractionPath
     )
 
-    begin {
-        try {
-            # Log the beginning of the function
-            Write-EnhancedLog -Message "Starting Download-PSAppDeployToolkit function." -Level "INFO"
+    Begin {
+        Write-EnhancedLog -Message "Starting Download-PSAppDeployToolkit function" -Level "INFO"
+        Log-Params -Params @{
+            GithubRepository = $GithubRepository
+            FilenamePatternMatch = $FilenamePatternMatch
+            ZipExtractionPath = $ZipExtractionPath
+        }
 
+        try {
             # Set the URI to get the latest release information from the GitHub repository
             $psadtReleaseUri = "https://api.github.com/repos/$GithubRepository/releases/latest"
             Write-EnhancedLog -Message "GitHub release URI: $psadtReleaseUri" -Level "INFO"
-        }
-        catch {
-            Write-EnhancedLog -Message "Error in begin block: $_" -Level "ERROR"
-            throw $_
+        } catch {
+            Write-EnhancedLog -Message "Error in begin block: $($_.Exception.Message)" -Level "ERROR"
+            Handle-Error -ErrorRecord $_
         }
     }
 
-    process {
+    Process {
         try {
             # Get the download URL for the matching filename pattern
-            Write-EnhancedLog -Message "Fetching the latest release information from GitHub." -Level "INFO"
+            Write-EnhancedLog -Message "Fetching the latest release information from GitHub" -Level "INFO"
             $psadtDownloadUri = (Invoke-RestMethod -Method GET -Uri $psadtReleaseUri).assets | Where-Object { $_.name -like $FilenamePatternMatch } | Select-Object -ExpandProperty browser_download_url
             
             if (-not $psadtDownloadUri) {
@@ -53,21 +55,23 @@ function Download-PSAppDeployToolkit {
             # Extract the contents of the zip file to the specified extraction path
             Write-EnhancedLog -Message "Extracting file from $zipTempDownloadPath to $ZipExtractionPath" -Level "INFO"
             Expand-Archive -Path $zipTempDownloadPath -DestinationPath $ZipExtractionPath -Force
-        }
-        catch {
-            Write-EnhancedLog -Message "Error in process block: $_" -Level "ERROR"
-            throw $_
+        } catch {
+            Write-EnhancedLog -Message "Error in process block: $($_.Exception.Message)" -Level "ERROR"
+            Handle-Error -ErrorRecord $_
         }
     }
 
-    end {
+    End {
         try {
-            Write-Host ("File: {0} extracted to Path: {1}" -f $psadtDownloadUri, $ZipExtractionPath) -ForegroundColor Yellow
             Write-EnhancedLog -Message "File extracted successfully to $ZipExtractionPath" -Level "INFO"
+        } catch {
+            Write-EnhancedLog -Message "Error in end block: $($_.Exception.Message)" -Level "ERROR"
+            Handle-Error -ErrorRecord $_
         }
-        catch {
-            Write-EnhancedLog -Message "Error in end block: $_" -Level "ERROR"
-            throw $_
-        }
+
+        Write-EnhancedLog -Message "Exiting Download-PSAppDeployToolkit function" -Level "INFO"
     }
 }
+
+# Example usage
+# Download-PSAppDeployToolkit -GithubRepository 'PSAppDeployToolkit/PSAppDeployToolkit' -FilenamePatternMatch '*.zip' -ZipExtractionPath 'C:\YourPath\Toolkit'
