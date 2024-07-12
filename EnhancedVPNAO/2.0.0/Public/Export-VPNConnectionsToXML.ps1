@@ -7,7 +7,7 @@ function Export-VPNConnectionsToXML {
 
     try {
         # Get the list of current VPN connections
-        $vpnConnections = Get-VpnConnection
+        $vpnConnections = Get-VpnConnection -AllUserConnection
 
         # Check if there are no VPN connections
         if ($vpnConnections.Count -eq 0) {
@@ -27,7 +27,7 @@ function Export-VPNConnectionsToXML {
             IncludeJSON      = $true
             IncludeXML       = $true
             IncludePlainText = $true
-            IncludeExcel     = $true
+            # IncludeExcel     = $true
             IncludeYAML      = $true
         }
 

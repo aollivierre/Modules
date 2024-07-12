@@ -7,8 +7,8 @@ function Test-VPNConnection {
 
     try {
         # Check if the VPN connection exists
-        $vpnConnection = Get-VpnConnection -Name $ConnectionName -ErrorAction SilentlyContinue
-        if ($vpnConnection) {
+        $vpnConnection = Get-VpnConnection -Name $ConnectionName -AllUserConnection -ErrorAction SilentlyContinue
+        if ($null -ne $vpnConnection) {
             Write-EnhancedLog -Message "VPN connection '$ConnectionName' exists." -Level "INFO"
             return $true
         } else {
@@ -22,3 +22,7 @@ function Test-VPNConnection {
         throw $_
     }
 }
+
+
+
+# Test-VPNConnection -ConnectionName "ICTC VPN"
