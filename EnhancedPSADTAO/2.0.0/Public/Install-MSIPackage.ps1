@@ -21,10 +21,26 @@ function Install-MsiPackage {
                 $arguments = $ArgumentTemplate -replace '{InstallerPath}', $installerPath
                 Start-Process -FilePath $FilePath -ArgumentList $arguments -Wait
                 Write-EnhancedLog -Message "Installation process completed for: $installerPath" -Level 'INFO'
-                Write-Output "Installation process completed for: $installerPath"
+                Write-EnhancedLog -Message "Installation process completed for: $installerPath" -Level 'INFO'
             } else {
                 Write-EnhancedLog -Message "Installer file not found at path: $installerPath" -Level 'ERROR'
-                Write-Output "Installer file not found at path: $installerPath"
+
+                Write-EnhancedLog -Message "Extracting all ZIP files recursively..."
+                $zipFiles = Get-ChildItem -Path $ScriptRoot -Recurse -Include '*.zip.001'
+                foreach ($zipFile in $zipFiles) {
+                    $destinationFolder = [System.IO.Path]::GetDirectoryName($zipFile.FullName)
+                    Write-EnhancedLog -Message "Combining and extracting segmented ZIP files for $($zipFile.BaseName) using 7-Zip..."
+                    $sevenZipCommand = "& `"$env:ProgramFiles\7-Zip\7z.exe`" x `"$zipFile`" -o`"$destinationFolder`""
+                    Write-EnhancedLog -Message "Executing: $sevenZipCommand"
+                    Invoke-Expression $sevenZipCommand
+                }
+                Write-EnhancedLog -Message "All ZIP files extracted."
+
+                $arguments = $ArgumentTemplate -replace '{InstallerPath}', $installerPath
+                Start-Process -FilePath $FilePath -ArgumentList $arguments -Wait
+
+
+                # Write-Output "Installer file not found at path: $installerPath"
             }
         } catch {
             Handle-Error -ErrorRecord $_
