@@ -13,7 +13,7 @@ function Download-And-Install-ServiceUI {
 
         try {
             $removeParams = @{
-                TargetFolder = $TargetFolder
+                TargetFolder = $TargetFolder;
                 FileName = "ServiceUI.exe"
             }
             Remove-ExistingServiceUI @removeParams
@@ -31,27 +31,25 @@ function Download-And-Install-ServiceUI {
 
         try {
             $downloadParams = @{
-                Uri     = $DownloadUrl
+                Uri     = $DownloadUrl;
                 OutFile = $msiPath
             }
             Write-EnhancedLog -Message "Downloading MDT MSI from: $DownloadUrl to: $msiPath" -Level "INFO"
             Invoke-WebRequest @downloadParams
 
             $installParams = @{
-                FilePath     = "msiexec.exe"
-                ArgumentList = "/i `"$msiPath`" /quiet /norestart"
+                FilePath     = "msiexec.exe";
+                ArgumentList = "/i `"$msiPath`" /quiet /norestart";
                 Wait         = $true
             }
             Write-EnhancedLog -Message "Installing MDT MSI from: $msiPath" -Level "INFO"
             Start-Process @installParams
 
             if (Test-Path -Path $InstalledServiceUIPath) {
-                $robocopyArgs = @(
-                    (Split-Path -Path $InstalledServiceUIPath -Parent),
-                    $TargetFolder,
-                    "ServiceUI.exe"
-                )
-                $robocopyCommand = "robocopy.exe $($robocopyArgs -join ' ')"
+                $sourceDir = "`"$(Split-Path -Parent $InstalledServiceUIPath)`""
+                $destDir = "`"$TargetFolder`""
+                $fileName = "ServiceUI.exe"
+                $robocopyCommand = "robocopy.exe $sourceDir $destDir $fileName"
                 Write-EnhancedLog -Message "Executing command: $robocopyCommand" -Level "INFO"
                 Invoke-Expression $robocopyCommand
 
@@ -62,7 +60,7 @@ function Download-And-Install-ServiceUI {
             }
 
             $removeMsiParams = @{
-                Path  = $msiPath
+                Path  = $msiPath;
                 Force = $true
             }
             Write-EnhancedLog -Message "Removing downloaded MSI file: $msiPath" -Level "INFO"
@@ -82,9 +80,9 @@ function Download-And-Install-ServiceUI {
 
 # # Example usage of Download-And-Install-ServiceUI function with splatting
 # $params = @{
-#     TargetFolder = "C:\Path\To\Your\Desired\Folder"
-#     DownloadUrl = "https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi"
-#     MsiFileName = "MicrosoftDeploymentToolkit_x64.msi"
+#     TargetFolder = "C:\Path\To\Your\Desired\Folder";
+#     DownloadUrl = "https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi";
+#     MsiFileName = "MicrosoftDeploymentToolkit_x64.msi";
 #     InstalledServiceUIPath = "C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64\ServiceUI.exe"
 # }
 # Download-And-Install-ServiceUI @params
