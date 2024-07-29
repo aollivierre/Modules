@@ -23,7 +23,7 @@ function Install-MsiPackage {
                 Write-EnhancedLog -Message "Installation process completed for: $installerPath" -Level 'INFO'
                 Write-EnhancedLog -Message "Installation process completed for: $installerPath" -Level 'INFO'
             } else {
-                Write-EnhancedLog -Message "Installer file not found at path: $installerPath" -Level 'ERROR'
+                Write-EnhancedLog -Message "Installer file not found at path: $installerPath.. proceeding to extract ZIP files" -Level 'WARNING'
 
                 Write-EnhancedLog -Message "Extracting all ZIP files recursively..."
                 $zipFiles = Get-ChildItem -Path $ScriptRoot -Recurse -Include '*.zip.001'
