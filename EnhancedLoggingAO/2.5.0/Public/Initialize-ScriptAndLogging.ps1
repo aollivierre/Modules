@@ -1,76 +1,54 @@
-#Unique Tracking ID: ff04d7f9-5cac-43a8-8602-c2d45228bcfa, Timestamp: 2024-03-20 12:25:26
-# Assign values from JSON to variables
 $LoggingDeploymentName = $config.LoggingDeploymentName
-    
+
+
 function Initialize-ScriptAndLogging {
-    $ErrorActionPreference = 'SilentlyContinue'
+    $isWindowsOS = $false
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $isWindowsOS = $isWindowsOS -or ($PSVersionTable.Platform -eq 'Win32NT')
+    } else {
+        $isWindowsOS = $isWindowsOS -or ($env:OS -eq 'Windows_NT')
+    }
+
     $deploymentName = "$LoggingDeploymentName" # Replace this with your actual deployment name
-    $scriptPath_1001 = "C:\code\$deploymentName"
-    # $hadError = $false
-    
+    $baseScriptPath = if ($isWindowsOS) { "C:\code" } else { "/home/code" }
+    $scriptPath_1001 = Join-Path -Path $baseScriptPath -ChildPath $deploymentName
+    $computerName = if ($isWindowsOS) { $env:COMPUTERNAME } else { (hostname) }
+
     try {
         if (-not (Test-Path -Path $scriptPath_1001)) {
             New-Item -ItemType Directory -Path $scriptPath_1001 -Force | Out-Null
-            Write-Host "Created directory: $scriptPath_1001"
+            Write-Host "Created directory: $scriptPath_1001" -ForegroundColor Green
         }
-    
-        $computerName = $env:COMPUTERNAME
+
         $Filename = "$LoggingDeploymentName"
-        $logDir = Join-Path -Path $scriptPath_1001 -ChildPath "exports\Logs\$computerName"
+        $logDir = Join-Path -Path $scriptPath_1001 -ChildPath "exports/Logs/$computerName"
         $logPath = Join-Path -Path $logDir -ChildPath "$(Get-Date -Format 'yyyy-MM-dd-HH-mm-ss')"
-            
-        if (!(Test-Path $logPath)) {
-            Write-Host "Did not find log file at $logPath" -ForegroundColor Yellow
-            Write-Host "Creating log file at $logPath" -ForegroundColor Yellow
-            $createdLogDir = New-Item -ItemType Directory -Path $logPath -Force -ErrorAction Stop
-            Write-Host "Created log file at $logPath" -ForegroundColor Green
+
+        if (-not (Test-Path $logPath)) {
+            Write-Host "Did not find log directory at $logPath" -ForegroundColor Yellow
+            Write-Host "Creating log directory at $logPath" -ForegroundColor Yellow
+            New-Item -ItemType Directory -Path $logPath -Force -ErrorAction Stop | Out-Null
+            Write-Host "Created log directory at $logPath" -ForegroundColor Green
         }
-            
+
         $logFile = Join-Path -Path $logPath -ChildPath "$Filename-Transcript.log"
         Start-Transcript -Path $logFile -ErrorAction Stop | Out-Null
-    
-        # $CSVDir_1001 = Join-Path -Path $scriptPath_1001 -ChildPath "exports\CSV"
-        # $CSVFilePath_1001 = Join-Path -Path $CSVDir_1001 -ChildPath "$computerName"
-            
-        # if (!(Test-Path $CSVFilePath_1001)) {
-        #     Write-Host "Did not find CSV file at $CSVFilePath_1001" -ForegroundColor Yellow
-        #     Write-Host "Creating CSV file at $CSVFilePath_1001" -ForegroundColor Yellow
-        #     $createdCSVDir = New-Item -ItemType Directory -Path $CSVFilePath_1001 -Force -ErrorAction Stop
-        #     Write-Host "Created CSV file at $CSVFilePath_1001" -ForegroundColor Green
-        # }
-    
+
         return @{
             ScriptPath  = $scriptPath_1001
             Filename    = $Filename
             LogPath     = $logPath
             LogFile     = $logFile
-            CSVFilePath = $CSVFilePath_1001
         }
-    
-    }
-    catch {
-        Write-Error "An error occurred while initializing script and logging: $_"
+    } catch {
+        Write-Host "An error occurred while initializing script and logging: $_" -ForegroundColor Red
     }
 }
-# $initializationInfo = Initialize-ScriptAndLogging
-    
-    
-    
-# Script Execution and Variable Assignment
-# After the function Initialize-ScriptAndLogging is called, its return values (in the form of a hashtable) are stored in the variable $initializationInfo.
-    
-# Then, individual elements of this hashtable are extracted into separate variables for ease of use:
-    
-# $ScriptPath_1001: The path of the script's main directory.
-# $Filename: The base name used for log files.
-# $logPath: The full path of the directory where logs are stored.
-# $logFile: The full path of the transcript log file.
-# $CSVFilePath_1001: The path of the directory where CSV files are stored.
-# This structure allows the script to have a clear organization regarding where logs and other files are stored, making it easier to manage and maintain, especially for logging purposes. It also encapsulates the setup logic in a function, making the main script cleaner and more focused on its primary tasks.
-    
-    
-# $ScriptPath_1001 = $initializationInfo['ScriptPath']
-# $Filename = $initializationInfo['Filename']
-# $logPath = $initializationInfo['LogPath']
-# $logFile = $initializationInfo['LogFile']
-# $CSVFilePath_1001 = $initializationInfo['CSVFilePath']
+
+# Example usage of Initialize-ScriptAndLogging
+# try {
+#     $initResult = Initialize-ScriptAndLogging
+#     Write-Host "Initialization successful. Log file path: $($initResult.LogFile)" -ForegroundColor Green
+# } catch {
+#     Write-Host "Initialization failed: $_" -ForegroundColor Red
+# }
