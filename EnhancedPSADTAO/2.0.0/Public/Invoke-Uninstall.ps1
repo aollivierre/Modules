@@ -2,8 +2,8 @@ function Invoke-Uninstall {
     [CmdletBinding()]
     param (
         [string]$ProductId,
-        [string]$FilePath = 'MsiExec.exe',
-        [string]$ArgumentTemplate = "/X{ProductId} /quiet /norestart"
+        [string]$FilePath,
+        [string]$ArgumentTemplate
     )
 
     begin {
@@ -15,8 +15,10 @@ function Invoke-Uninstall {
         try {
             Write-EnhancedLog -Message 'Starting uninstallation process.' -Level 'INFO'
 
+            # Ensure the ProductId is wrapped in curly braces
+            $wrappedProductId = "{$ProductId}"
             # Construct the argument list using the template
-            $arguments = $ArgumentTemplate -replace '{ProductId}', $ProductId
+            $arguments = $ArgumentTemplate -replace '{ProductId}', $wrappedProductId
 
             Write-EnhancedLog -Message "FilePath: $FilePath" -Level 'INFO'
             Write-EnhancedLog -Message "Arguments: $arguments" -Level 'INFO'
@@ -37,7 +39,7 @@ function Invoke-Uninstall {
 
 # # Example usage of Invoke-Uninstall function with splatting
 # $params = @{
-#     ProductId = 'YOUR_PRODUCT_ID'
+#     ProductId = '0DC51760-4FB7-41F3-8967-D3DEC9D320EB'
 #     FilePath = 'MsiExec.exe'
 #     ArgumentTemplate = "/X{ProductId} /quiet /norestart"
 # }

@@ -38,10 +38,13 @@ function CreateAndExecuteScheduledTask {
 
     process {
         try {
-            # Load configuration from JSON file
-            $config = Get-Content -Path $ConfigPath | ConvertFrom-Json
+            # # Load configuration from JSON file
+            # $config = Get-Content -Path $ConfigPath | ConvertFrom-Json
 
-            # Initialize variables directly from the config
+            # Load configuration from PSD1 file
+            $config = Import-PowerShellDataFile -Path $ConfigPath
+
+            # # Initialize variables directly from the config
             $PackageName = $config.PackageName
             $PackageUniqueGUID = $config.PackageUniqueGUID
             $Version = $config.Version
@@ -49,6 +52,8 @@ function CreateAndExecuteScheduledTask {
             $PackageExecutionContext = $config.PackageExecutionContext
             $RepetitionInterval = $config.RepetitionInterval
             $DataFolder = $config.DataFolder
+
+            
 
             # Determine local path based on execution context if not provided
             if (-not $Path_local) {
@@ -81,6 +86,13 @@ function CreateAndExecuteScheduledTask {
                 DestinationPath = $Path_PR
             }
             Copy-FilesToPath @CopyFilesToPathParams
+
+            # Verify copy operation
+            $VerifyCopyOperationParams = @{
+                SourcePath      = $Scriptroot
+                DestinationPath = $Path_PR
+            }
+            Verify-CopyOperation @VerifyCopyOperationParams
 
             # Ensure the script runs with administrative privileges
             if (-not (IsAdmin)) {
@@ -130,7 +142,19 @@ function CreateAndExecuteScheduledTask {
                     Path_PR = $Path_PR
                 }
                 
-                Execute-DetectionAndRemediation @executeParams
+
+                # Register the scheduled task
+                if ($config.ScheduleOnly -eq $true) {
+                    Write-EnhancedLog -Message "Registering task with ScheduleOnly set to $($config.ScheduleOnly)" -Level "INFO"
+                    # $task = Register-ScheduledTask -TaskName $schtaskName -Action $action -Trigger $trigger -Principal $principal -Description $schtaskDescription -Force
+                }
+                else {
+                    Write-EnhancedLog -Message "Registering task with ScheduleOnly set to $($config.ScheduleOnly)" -Level "INFO"
+                    Execute-DetectionAndRemediation @executeParams
+                }
+
+
+               
             }
             else {
                 Write-EnhancedLog -Message "No existing task found. Setting up new task environment." -Level "INFO"
@@ -189,19 +213,21 @@ function MyRegisterScheduledTask {
     )
 
     try {
-        Write-EnhancedLog -Message "Registering scheduled task: $schtaskName" -Level "INFO" -ForegroundColor Magenta
+        Write-EnhancedLog -Message "Registering scheduled task: $schtaskName" -Level "INFO"
 
         $startTime = (Get-Date).AddMinutes(1).ToString("HH:mm")
 
         # Define the action based on the provided options in the config.json
         if ($config.UsePSADT) {
-            Write-EnhancedLog -Message "Setting up Schedule Task action for Service UI and PSADT" -Level "INFO" -ForegroundColor Magenta
+            Write-EnhancedLog -Message "Setting up Schedule Task action for Service UI and PSADT" -Level "INFO"
 
             # Define the path to the PowerShell Application Deployment Toolkit executable
-            $ToolkitExecutable = "$Path_PR\Private\PSAppDeployToolkit\Toolkit\Deploy-Application.exe"
+            # $ToolkitExecutable = "$Path_PR\Private\PSAppDeployToolkit\Toolkit\Deploy-Application.exe"
+            $ToolkitExecutable = "$Path_PR\Deploy-Application.exe"
 
             # Define the path to the ServiceUI executable
-            $ServiceUIExecutable = "$Path_PR\Private\ServiceUI.exe"
+            # $ServiceUIExecutable = "$Path_PR\Private\ServiceUI.exe"
+            $ServiceUIExecutable = "$Path_PR\ServiceUI.exe"
 
             # Define the deployment type
             $DeploymentType = "install"
@@ -213,7 +239,7 @@ function MyRegisterScheduledTask {
             $action = New-ScheduledTaskAction -Execute $ServiceUIExecutable -Argument $argList
         }
         else {
-            Write-EnhancedLog -Message "Setting up Scheduled Task action for wscript and VBS" -Level "INFO" -ForegroundColor Magenta
+            Write-EnhancedLog -Message "Setting up Scheduled Task action for wscript and VBS" -Level "INFO"
 
             # Define the arguments for wscript.exe
             $argList = "`"$Path_vbs`" `"$Path_PSscript`""
@@ -234,6 +260,10 @@ function MyRegisterScheduledTask {
             $trigger = New-ScheduledTaskTrigger -AtLogOn
             Write-EnhancedLog -Message "Trigger set to logon of user $($config.LogonUserId)" -Level "INFO"
         }
+        elseif ($config.TriggerType -eq "AtStartup") {
+            $trigger = New-ScheduledTaskTrigger AtStartup
+            Write-EnhancedLog -Message "Trigger set at startup" -Level "INFO"
+        }
         else {
             throw "Invalid TriggerType specified in the configuration."
         }
@@ -251,7 +281,19 @@ function MyRegisterScheduledTask {
         }
 
         $task = Get-ScheduledTask -TaskName $schtaskName
-        $task.Triggers[0].Repetition.Interval = $RepetitionInterval
+
+
+        if ($config.Repeat -eq $true) {
+            Write-EnhancedLog -Message "Registering task with Repeat set to $($config.Repeat)" -Level "INFO"
+            $task.Triggers[0].Repetition.Interval = $RepetitionInterval
+        }
+        else {
+            Write-EnhancedLog -Message "Registering task with Repeat set to $($config.Repeat)" -Level "INFO"
+        }
+
+
+
+        
         $task | Set-ScheduledTask
 
         if ($PackageExecutionContext -eq "User") {
@@ -262,10 +304,10 @@ function MyRegisterScheduledTask {
             $taskFolder.RegisterTaskDefinition("$schtaskName", $Task.Definition, 6, 'Users', $null, 4)
         }
 
-        Write-EnhancedLog -Message "Scheduled task $schtaskName registered successfully." -Level "INFO" -ForegroundColor Green
+        Write-EnhancedLog -Message "Scheduled task $schtaskName registered successfully." -Level "INFO"
     }
     catch {
-        Write-EnhancedLog -Message "An error occurred while registering the scheduled task: $_" -Level "ERROR" -ForegroundColor Red
+        Write-EnhancedLog -Message "An error occurred while registering the scheduled task: $_" -Level "ERROR"
         throw $_
     }
 }
@@ -281,6 +323,3 @@ function MyRegisterScheduledTask {
 
 # # Call the function with splatted parameters
 # CreateAndExecuteScheduledTask @taskParams
-
-
-

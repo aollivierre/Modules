@@ -3,7 +3,8 @@ function Import-RegistryFilesInScriptRoot {
     param (
         [string]$Filter,
         [string]$FilePath,
-        [string]$Arguments
+        [string]$Arguments,
+        $scriptDirectory
     )
 
     begin {
@@ -13,7 +14,6 @@ function Import-RegistryFilesInScriptRoot {
 
     process {
         try {
-            $scriptDirectory = $PSScriptRoot
             $registryFiles = Get-ChildItem -Path $scriptDirectory -Filter $Filter
 
             if ($registryFiles.Count -eq 0) {
