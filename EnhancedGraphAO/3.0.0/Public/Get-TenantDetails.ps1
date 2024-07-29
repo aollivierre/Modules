@@ -3,22 +3,35 @@ function Get-TenantDetails {
         # Retrieve the organization details
         $organization = Get-MgOrganization
 
-        # $DBG
-
         # Extract the required details
         $tenantName = $organization.DisplayName
         $tenantId = $organization.Id
-        $tenantDomain = $organization.VerifiedDomains[2].Name
 
-        # Adjust the tenant domain
+        # Initialize tenantDomain
+        $tenantDomain = $null
+
+        # Search for a verified domain matching the onmicrosoft.com pattern
+        foreach ($domain in $organization.VerifiedDomains) {
+            if ($domain.Name -match '\.onmicrosoft\.com$') {
+                $tenantDomain = $domain.Name
+                break
+            }
+        }
+
+        # Adjust the tenant domain if necessary
         if ($tenantDomain -match '\.mail\.onmicrosoft\.com$') {
             $tenantDomain = $tenantDomain -replace '\.mail\.onmicrosoft\.com$', '.onmicrosoft.com'
         }
 
+        if ($null -eq $tenantDomain) {
+            throw "No onmicrosoft.com domain found."
+        }
+
         # Output tenant summary
-        Write-EnhancedLog -Message "Tenant Name: $tenantName" -Level "INFO" 
+        Write-EnhancedLog -Message "Tenant Name: $tenantName" -Level "INFO"
         Write-EnhancedLog -Message "Tenant ID: $tenantId" -Level "INFO"
         Write-EnhancedLog -Message "Tenant Domain: $tenantDomain" -Level "INFO"
+
 
         # Return the extracted details
         return @{
@@ -29,10 +42,9 @@ function Get-TenantDetails {
     } catch {
         Handle-Error -ErrorRecord $_
         Write-EnhancedLog -Message "Failed to retrieve tenant details" -Level "ERROR"
-        # return $null
+        return $null
     }
 }
-
 
 # # Example usage
 # $tenantDetails = Get-TenantDetails

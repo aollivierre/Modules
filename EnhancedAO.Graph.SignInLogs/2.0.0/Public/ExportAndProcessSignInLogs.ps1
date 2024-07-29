@@ -20,10 +20,13 @@ function ExportAndProcessSignInLogs {
             url                = $url
             Headers            = $Headers
         }
-        
-        # Call the function with splatted parameters
-        # (uncomment if you want to export fresh sign-in logs to a new JSON file)
-        # Export-SignInLogs @ExportSignInLogsparams
+
+        # Ask user if they want to export fresh sign-in logs
+        $exportFreshLogs = Read-Host "Would you like to export fresh logs? (yes/no)"
+
+        if ($exportFreshLogs -eq 'yes') {
+            Export-SignInLogs @ExportSignInLogsparams
+        }
 
         $subFolderPath = Join-Path -Path $ScriptRoot -ChildPath $ExportsFolderName
         $subFolderPath = Join-Path -Path $subFolderPath -ChildPath $ExportSubFolderName
@@ -35,7 +38,6 @@ function ExportAndProcessSignInLogs {
         if ($latestJsonFile) {
             Write-EnhancedLog -Message "Latest JSON file found: $latestJsonFile" -Level "DEBUG"
             $signInLogs = Load-SignInLogs -JsonFilePath $latestJsonFile
-            # $dbg
             if ($signInLogs.Count -gt 0) {
                 Write-EnhancedLog -Message "Sign-in logs found in $latestJsonFile. Starting to process it" -Level "INFO"
                 # Process-AllDevices -Json $signInLogs -Headers $Headers
@@ -53,16 +55,3 @@ function ExportAndProcessSignInLogs {
         return @()
     }
 }
-# # Example usage
-# $params = @{
-#     ScriptRoot         = "C:\Path\To\ScriptRoot"
-#     ExportsFolderName  = "Exports"
-#     ExportSubFolderName= "SubFolder"
-#     url                = "https://example.com/api/signinlogs"
-#     Headers            = @{
-#         "Authorization" = "Bearer <your_token>"
-#         "Content-Type"  = "application/json"
-#     }
-# }
-
-# ExportAndProcessSignInLogs @params

@@ -1,8 +1,11 @@
 function Is-ServerCore {
-    $regPath = "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Server\ServerLevels"
-    if (Test-Path $regPath) {
-        $value = Get-ItemProperty -Path $regPath -Name "ServerCore"
-        return $value.ServerCore -eq 1
+    $explorerPath = "$env:SystemRoot\explorer.exe"
+
+    if (Test-Path $explorerPath) {
+        return $false
+    } else {
+        return $true
     }
-    return $false
 }
+
+Is-ServerCore

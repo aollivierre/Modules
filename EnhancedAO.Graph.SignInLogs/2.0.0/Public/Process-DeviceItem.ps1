@@ -12,62 +12,61 @@ function Process-DeviceItem {
     Begin {
         Write-EnhancedLog -Message "Starting Process-DeviceItem function" -Level "INFO"
         Log-Params -Params @{ Item = $Item; Context = $Context }
+        Initialize-Context -Context $Context
     }
 
     Process {
+        # Ensure deviceDetail object and properties exist
+        if (-not $Item.deviceDetail) {
+            Write-EnhancedLog -Message "Missing deviceDetail for user: $($Item.userDisplayName)" -Level "WARNING"
+            return
+        }
+
         $deviceId = $Item.deviceDetail.deviceId
         $userId = $Item.userId
+        $os = $Item.deviceDetail.operatingSystem
+
+        if (-not $userId) {
+            Write-EnhancedLog -Message "Missing userId for device item" -Level "WARNING"
+            return
+        }
 
         try {
+            # Construct uniqueId based on availability of deviceId and OS for BYOD
+            if ([string]::IsNullOrWhiteSpace($deviceId)) {
+                $uniqueId = "$userId-$os".ToLowerInvariant()
+            } else {
+                $uniqueId = $deviceId.ToLowerInvariant()
+            }
+
             # Log the device and user information
-            Write-EnhancedLog -Message "Processing device item for user: $($Item.userDisplayName) with unique ID: $($deviceId -or $userId)" -Level "INFO"
+            Write-EnhancedLog -Message "Processing device item for user: $($Item.userDisplayName) with unique ID: $uniqueId" -Level "INFO"
 
             # Handle external Azure AD tenant case
-            if ([string]::Equals($deviceId, "{PII Removed}", [System.StringComparison]::OrdinalIgnoreCase)) {
-                if ($Context.UniqueDeviceIds.Add($userId)) {
-                    Write-EnhancedLog -Message "External Azure AD tenant detected for user: $($Item.userDisplayName)" -Level "INFO"
-                    Add-Result -Context $Context -Item $Item -DeviceId "N/A" -DeviceState "External" -HasPremiumLicense $false -OSVersion $null
-                }
+            if (Handle-ExternalAADTenant -Item $Item -Context $Context -UniqueId $uniqueId) {
                 return
             }
 
-            # Handle BYOD case
-            if ([string]::IsNullOrWhiteSpace($deviceId)) {
-                if ($Context.UniqueDeviceIds.Add($userId)) {
-                    # Fetch user licenses
-                    $userLicenses = Fetch-UserLicense -UserId $userId -Username $Item.userDisplayName -Headers $Headers
-                    $hasPremiumLicense = $false
-
-                    if ($null -ne $userLicenses -and $userLicenses.Count -gt 0) {
-                        $hasPremiumLicense = $userLicenses.Contains("cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46")
-                        Write-EnhancedLog -Message "User $($Item.userDisplayName) has the following licenses: $($userLicenses -join ', ')" -Level "INFO"
-                    } else {
-                        Write-EnhancedLog -Message "User $($Item.userDisplayName) has no licenses." -Level "INFO"
-                    }
+            # Process only if the unique ID is not already processed
+            if ($Context.UniqueDeviceIds.Add($uniqueId)) {
+                # Handle BYOD case
+                if ([string]::IsNullOrWhiteSpace($deviceId)) {
+                    # Fetch user licenses with retry logic
+                    $userLicenses = Fetch-UserLicensesWithRetry -UserId $userId -Username $Item.userDisplayName -Headers $Headers
+                    $hasPremiumLicense = $userLicenses -and $userLicenses.Count -gt 0 -and $userLicenses.Contains("cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46")
+                    Write-EnhancedLog -Message "User $($Item.userDisplayName) has the following licenses: $($userLicenses -join ', ')" -Level "INFO"
 
                     Add-Result -Context $Context -Item $Item -DeviceId "N/A" -DeviceState "BYOD" -HasPremiumLicense $hasPremiumLicense -OSVersion $null
-                }
-                return
-            }
-
-            # Handle managed device case
-            if ($Context.UniqueDeviceIds.Add($deviceId)) {
-                # Call the method to check device state
-                $deviceState = Check-DeviceStateInIntune -entraDeviceId $deviceId -username $Item.userDisplayName -Headers $Headers
-
-                # Fetch user licenses
-                $userLicenses = Fetch-UserLicense -UserId $userId -Username $Item.userDisplayName -Headers $Headers
-                $hasPremiumLicense = $false
-
-                if ($null -ne $userLicenses -and $userLicenses.Count -gt 0) {
-                    $hasPremiumLicense = $userLicenses.Contains("cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46")
-                    Write-EnhancedLog -Message "User $($Item.userDisplayName) has the following licenses: $($userLicenses -join ', ')" -Level "INFO"
-                } else {
-                    Write-EnhancedLog -Message "User $($Item.userDisplayName) has no licenses." -Level "INFO"
+                    return
                 }
 
-                # Fetch OS version
-                $osVersion = Fetch-OSVersion -DeviceId $deviceId -Headers $Headers
+                # Handle managed device case with retry logic
+                $deviceState = Fetch-DeviceStateWithRetry -DeviceId $deviceId -Username $Item.userDisplayName -Headers $Headers
+                $osVersion = Fetch-OSVersionWithRetry -DeviceId $deviceId -Headers $Headers
+
+                $userLicenses = Fetch-UserLicensesWithRetry -UserId $userId -Username $Item.userDisplayName -Headers $Headers
+                $hasPremiumLicense = $userLicenses -and $userLicenses.Count -gt 0 -and $userLicenses.Contains("cbdc14ab-d96c-4c30-b9f4-6ada7cdc1d46")
+                Write-EnhancedLog -Message "User $($Item.userDisplayName) has the following licenses: $($userLicenses -join ', ')" -Level "INFO"
 
                 Add-Result -Context $Context -Item $Item -DeviceId $deviceId -DeviceState $deviceState -HasPremiumLicense $hasPremiumLicense -OSVersion $osVersion
             }

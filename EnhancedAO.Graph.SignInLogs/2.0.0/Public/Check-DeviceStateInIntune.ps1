@@ -19,7 +19,7 @@ function Check-DeviceStateInIntune {
     )
 
     if ([string]::IsNullOrWhiteSpace($EntraDeviceId)) {
-        return "BYOD"
+        return "Absent"
     }
 
     Write-EnhancedLog -Message "Checking device state in Intune for Entra Device ID: $EntraDeviceId for username: $Username" -ForegroundColor Cyan
