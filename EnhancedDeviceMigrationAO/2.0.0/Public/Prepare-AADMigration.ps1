@@ -190,7 +190,23 @@ function Prepare-AADMigration {
 
                 $DBG
 
+
+
+               
             }
+
+
+
+             #Todo now we have OneDrive installed and running  need to actually starting using our OneDrive for Business location on the local machine to copy user specific files into it as part of our On-prem AD to Entra ID migration prep so we need to copy the following PR4B projects from before
+
+                # 1- copy Outlook Signatures
+                # 2- copy Downloads folders
+                # any other user specific files
+
+
+                # copy Downloads folders
+
+                
 
         }
         catch {
