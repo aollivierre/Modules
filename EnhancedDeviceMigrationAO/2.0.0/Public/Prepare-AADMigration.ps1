@@ -205,6 +205,7 @@ function Prepare-AADMigration {
 
 
                 # copy Downloads folders
+                Backup-DownloadsToOneDrive
 
                 
 
