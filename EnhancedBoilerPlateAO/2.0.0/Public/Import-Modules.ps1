@@ -8,10 +8,10 @@ function Import-Modules {
         if (Get-Module -ListAvailable -Name $module) {
             # Import-Module -Name $module -Force -Verbose
             Import-Module -Name $module -Force:$true -Global:$true
-            Write-EnhancedLog -Message "Module '$module' imported." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+            Write-EnhancedLog -Message "Module '$module' imported." -Level "INFO"
         }
         else {
-            Write-EnhancedLog -Message "Module '$module' not found. Cannot import." -Level "ERROR" -ForegroundColor ([ConsoleColor]::Red)
+            Write-EnhancedLog -Message "Module '$module' not found. Cannot import." -Level "ERROR"
         }
     }
 }

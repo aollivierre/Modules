@@ -20,10 +20,10 @@ function Install-Modules {
         if (-not (Get-Module -ListAvailable -Name $module)) {
             # Install-Module -Name $module -Force -Scope AllUsers
             Install-Module -Name $module -Force -Scope CurrentUser
-            Write-EnhancedLog -Message "Module '$module' installed." -Level "INFO" -ForegroundColor ([ConsoleColor]::Green)
+            Write-EnhancedLog -Message "Module '$module' installed." -Level "INFO" -ForegroundColor
         }
         else {
-            Write-EnhancedLog -Message "Module '$module' is already installed." -Level "INFO" -ForegroundColor ([ConsoleColor]::Yellow)
+            Write-EnhancedLog -Message "Module '$module' is already installed." -Level "INFO" -ForegroundColor
         }
     }
 }
