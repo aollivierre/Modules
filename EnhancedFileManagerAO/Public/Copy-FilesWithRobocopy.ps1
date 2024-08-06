@@ -24,6 +24,9 @@ function Copy-FilesWithRobocopy {
     .PARAMETER RequiredSpaceGB
     The required free space in gigabytes at the destination. Default is 10 GB.
 
+    .PARAMETER Exclude
+    The directories or files to exclude from the copy operation.
+
     .EXAMPLE
     Copy-FilesWithRobocopy -Source "C:\Source" -Destination "C:\Destination" -FilePattern "*.txt"
     Copies all .txt files from C:\Source to C:\Destination.
@@ -31,6 +34,10 @@ function Copy-FilesWithRobocopy {
     .EXAMPLE
     "*.txt", "*.log" | Copy-FilesWithRobocopy -Source "C:\Source" -Destination "C:\Destination"
     Copies all .txt and .log files from C:\Source to C:\Destination using pipeline input for the file patterns.
+
+    .EXAMPLE
+    Copy-FilesWithRobocopy -Source "C:\Source" -Destination "C:\Destination" -Exclude ".git"
+    Copies files from C:\Source to C:\Destination excluding the .git folder.
 
     .NOTES
     This function relies on the following private functions:
@@ -46,14 +53,16 @@ function Copy-FilesWithRobocopy {
         [string]$Source,
         [Parameter(Mandatory = $true)]
         [string]$Destination,
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
         [string]$FilePattern,
         [Parameter(Mandatory = $false)]
         [int]$RetryCount = 2,
         [Parameter(Mandatory = $false)]
         [int]$WaitTime = 5,
         [Parameter(Mandatory = $false)]
-        [int]$RequiredSpaceGB = 10  # Example value for required space
+        [int]$RequiredSpaceGB = 10, # Example value for required space
+        [Parameter(Mandatory = $false)]
+        [string[]]$Exclude
     )
 
     begin {
@@ -89,6 +98,18 @@ function Copy-FilesWithRobocopy {
                 "/W:$WaitTime",
                 "/LOG:$logFilePath"
             )
+
+            # Add exclude arguments if provided
+            if ($Exclude) {
+                $excludeDirs = $Exclude | ForEach-Object { "/XD $_" }
+                $excludeFiles = $Exclude | ForEach-Object { "/XF $_" }
+                $robocopyArgs = $robocopyArgs + $excludeDirs + $excludeFiles
+
+                # Log what is being excluded
+                foreach ($item in $Exclude) {
+                    Write-EnhancedLog -Message "Excluding: $item" -Level "INFO"
+                }
+            }
 
             Write-EnhancedLog -Message "Starting Robocopy process with arguments: $robocopyArgs" -Level "INFO"
             # Splatting Start-Process parameters
