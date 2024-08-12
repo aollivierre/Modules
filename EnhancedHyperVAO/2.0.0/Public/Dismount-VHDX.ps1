@@ -20,7 +20,7 @@ function Dismount-VHDX {
                 Write-EnhancedLog -Message "Checking for dependent VMs using the VHDX: $VHDXPath" -Level "INFO"
                 $dependentVMs = Get-DependentVMs -VHDXPath $VHDXPath
                 $runningVMs = $dependentVMs | Where-Object { $_.State -eq 'Running' }
-                
+
                 if ($runningVMs.Count -gt 0) {
                     Write-EnhancedLog -Message "Found running VMs using the VHDX. Skipping dismount." -Level "WARNING"
                     foreach ($vm in $runningVMs) {
@@ -30,8 +30,27 @@ function Dismount-VHDX {
                 }
 
                 Write-EnhancedLog -Message "No running VMs found using the VHDX. Proceeding with dismount." -Level "INFO"
-                Dismount-VHD -Path $VHDXPath -ErrorAction Stop
-                Write-EnhancedLog -Message "VHDX dismounted successfully." -Level "INFO"
+
+                # Retry mechanism for dismounting
+                $retryCount = 0
+                $maxRetries = 3
+                $dismountSuccess = $false
+
+                while ($retryCount -lt $maxRetries -and -not $dismountSuccess) {
+                    try {
+                        Dismount-VHD -Path $VHDXPath -ErrorAction Stop
+                        Write-EnhancedLog -Message "VHDX dismounted successfully." -Level "INFO"
+                        $dismountSuccess = $true
+                    } catch {
+                        Write-EnhancedLog -Message "Attempt $($retryCount + 1) to dismount VHDX failed: $($_.Exception.Message)" -Level "ERROR"
+                        $retryCount++
+                        Start-Sleep -Seconds 2
+                    }
+                }
+
+                if (-not $dismountSuccess) {
+                    throw "Failed to dismount VHDX after $maxRetries attempts."
+                }
             } else {
                 Write-EnhancedLog -Message "$VHDXPath is already dismounted or not mounted." -Level "INFO"
             }
