@@ -1,3 +1,4 @@
+
 function Download-PSAppDeployToolkit {
     [CmdletBinding()]
     param (
@@ -44,9 +45,29 @@ function Download-PSAppDeployToolkit {
             $zipTempDownloadPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (Split-Path -Path $psadtDownloadUri -Leaf)
             Write-EnhancedLog -Message "Temporary download path: $zipTempDownloadPath" -Level "INFO"
 
-            # Download the file to the temporary location
-            Write-EnhancedLog -Message "Downloading file from $psadtDownloadUri to $zipTempDownloadPath" -Level "INFO"
-            Invoke-WebRequest -Uri $psadtDownloadUri -OutFile $zipTempDownloadPath
+            # Initialize retry mechanism
+            $maxRetries = 3
+            $retryCount = 0
+            $downloadSuccess = $false
+
+            # Download the file with retry mechanism
+            while (-not $downloadSuccess -and $retryCount -lt $maxRetries) {
+                try {
+                    $retryCount++
+                    Write-EnhancedLog -Message "Downloading file from $psadtDownloadUri to $zipTempDownloadPath (Attempt $retryCount)" -Level "INFO"
+                    $webClient = New-Object System.Net.WebClient
+                    $webClient.DownloadFile($psadtDownloadUri, $zipTempDownloadPath)
+                    $downloadSuccess = $true
+                }
+                catch {
+                    Write-EnhancedLog -Message "Error during download attempt $retryCount $($_.Exception.Message)" -Level "ERROR"
+                    if ($retryCount -eq $maxRetries) {
+                        Write-EnhancedLog -Message "Maximum retry attempts reached. Download failed." -Level "ERROR"
+                        throw $_
+                    }
+                    Start-Sleep -Seconds 5
+                }
+            }
 
             # Unblock the downloaded file if necessary
             Write-EnhancedLog -Message "Unblocking file at $zipTempDownloadPath" -Level "INFO"
@@ -117,6 +138,8 @@ function Download-PSAppDeployToolkit {
         Write-EnhancedLog -Message "Exiting Download-PSAppDeployToolkit function" -Level "INFO"
     }
 }
+
+
 
 # # Example usage
 # $params = @{

@@ -28,15 +28,29 @@ function Download-And-Install-ServiceUI {
     process {
         $msiPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $MsiFileName
         $finalPath = Join-Path -Path $TargetFolder -ChildPath "ServiceUI.exe"
+        $maxRetries = 3
+        $retryCount = 0
+        $downloadSuccess = $false
+
+        while (-not $downloadSuccess -and $retryCount -lt $maxRetries) {
+            try {
+                $retryCount++
+                $webClient = New-Object System.Net.WebClient
+                Write-EnhancedLog -Message "Downloading MDT MSI from: $DownloadUrl to: $msiPath (Attempt $retryCount)" -Level "INFO"
+                $webClient.DownloadFile($DownloadUrl, $msiPath)
+                $downloadSuccess = $true
+            }
+            catch {
+                Write-EnhancedLog -Message "Error downloading MDT MSI on attempt $retryCount $_" -Level "ERROR"
+                if ($retryCount -eq $maxRetries) {
+                    Write-EnhancedLog -Message "Maximum retry attempts reached. Download failed." -Level "ERROR"
+                    throw $_
+                }
+                Start-Sleep -Seconds 5
+            }
+        }
 
         try {
-            $downloadParams = @{
-                Uri     = $DownloadUrl;
-                OutFile = $msiPath
-            }
-            Write-EnhancedLog -Message "Downloading MDT MSI from: $DownloadUrl to: $msiPath" -Level "INFO"
-            Invoke-WebRequest @downloadParams
-
             $installParams = @{
                 FilePath     = "msiexec.exe";
                 ArgumentList = "/i `"$msiPath`" /quiet /norestart";
@@ -77,6 +91,7 @@ function Download-And-Install-ServiceUI {
         Write-EnhancedLog -Message "Download-And-Install-ServiceUI function execution completed." -Level "INFO"
     }
 }
+
 
 # # Example usage of Download-And-Install-ServiceUI function with splatting
 # $params = @{
