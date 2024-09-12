@@ -4,13 +4,10 @@ function CheckAndExecuteTask {
     Checks for an existing scheduled task and executes tasks based on conditions.
 
     .DESCRIPTION
-    This function checks if a scheduled task with the specified name and version exists. If it does, it proceeds to execute detection and remediation scripts. If not, it sets up a new task environment and registers the task. It uses enhanced logging for status messages and error handling to manage potential issues.
+    This function checks if a scheduled task with the specified name exists. If it does, it executes detection and remediation scripts. If not, it sets up a new task environment and registers the task. Enhanced logging is used for status messages, and error handling manages potential issues.
 
     .PARAMETER schtaskName
     The name of the scheduled task to check and potentially execute.
-
-    .PARAMETER Version
-    The version of the task to check for. This is used to verify if the correct task version is already scheduled.
 
     .PARAMETER Path_PR
     The path to the directory containing the detection and remediation scripts, used if the task needs to be executed.
@@ -19,69 +16,77 @@ function CheckAndExecuteTask {
     The mode in which the script should run.
 
     .PARAMETER PackageExecutionContext
-    The context in which the package should execute.
+    The context in which the package should execute (e.g., User, System).
 
     .PARAMETER schtaskDescription
     The description of the scheduled task.
 
-    .EXAMPLE
-    CheckAndExecuteTask -schtaskName "MyScheduledTask" -Version 1 -Path_PR "C:\Tasks\MyTask"
+    .PARAMETER RepetitionInterval
+    The interval at which the task should repeat (e.g., "P1D").
 
-    This example checks for an existing scheduled task named "MyScheduledTask" of version 1. If it exists, it executes the associated tasks; otherwise, it sets up a new environment and registers the task.
+    .PARAMETER Path_VBShiddenPS
+    The path to the hidden PowerShell script file executed by VBScript.
+
+    .EXAMPLE
+    CheckAndExecuteTask -schtaskName "MyScheduledTask" -Path_PR "C:\Tasks\MyTask" -ScriptMode "Remediation" -PackageExecutionContext "System" -schtaskDescription "Task Description" -RepetitionInterval "P1D" -Path_VBShiddenPS "C:\Scripts\HiddenPS.vbs"
+
+    This example checks for an existing scheduled task and executes the associated detection and remediation scripts if the task exists. Otherwise, it sets up a new task environment and registers the task.
     #>
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Provide the name of the scheduled task.")]
         [string]$schtaskName,
 
-        # [Parameter(Mandatory = $true)]
-        # [int]$Version,
-
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Provide the path to the directory for detection and remediation scripts.")]
         [string]$Path_PR,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the script mode (e.g., Remediation, Detection).")]
         [string]$ScriptMode,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the execution context for the package (e.g., System, User).")]
         [string]$PackageExecutionContext,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Provide the description of the scheduled task.")]
         [string]$schtaskDescription,
 
-
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the task repetition interval (e.g., P1D).")]
         [string]$RepetitionInterval,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "Provide the path to the VBScript for hidden PowerShell execution.")]
         [string]$Path_VBShiddenPS
     )
 
-    begin {
-        Write-EnhancedLog -Message 'Starting CheckAndExecuteTask function' -Level 'INFO'
+    Begin {
+        Write-EnhancedLog -Message "Starting CheckAndExecuteTask function" -Level "Notice"
         Log-Params -Params $PSCmdlet.MyInvocation.BoundParameters
     }
 
-    process {
+    Process {
         try {
             Write-EnhancedLog -Message "Checking for existing task: $schtaskName" -Level "INFO"
 
+            # Splatting for the Check-ExistingTask function
             $checkParams = @{
                 taskName = $schtaskName
-                # version  = $Version
             }
+
             $taskExists = Check-ExistingTask @checkParams
 
             if ($taskExists) {
                 Write-EnhancedLog -Message "Existing task found. Executing detection and remediation scripts." -Level "INFO"
+                
+                # Splatting for Execute-DetectionAndRemediation
                 $executeParams = @{
                     Path_PR = $Path_PR
                 }
+
                 Execute-DetectionAndRemediation @executeParams
             }
             else {
                 Write-EnhancedLog -Message "No existing task found. Setting up new task environment." -Level "INFO"
+
+                # Splatting for SetupNewTaskEnvironment
                 $setupParams = @{
                     Path_PR                 = $Path_PR
                     schtaskName             = $schtaskName
@@ -91,33 +96,30 @@ function CheckAndExecuteTask {
                     RepetitionInterval      = $RepetitionInterval
                     Path_VBShiddenPS        = $Path_VBShiddenPS
                 }
+
                 SetupNewTaskEnvironment @setupParams
             }
         }
         catch {
-            Write-EnhancedLog -Message "An error occurred while checking and executing the task: $_" -Level "ERROR"
+            Write-EnhancedLog -Message "An error occurred while checking and executing the task: $($_.Exception.Message)" -Level "ERROR"
             Handle-Error -ErrorRecord $_
+            throw
         }
     }
 
-    end {
-        Write-EnhancedLog -Message 'CheckAndExecuteTask function completed' -Level 'INFO'
+    End {
+        Write-EnhancedLog -Message "CheckAndExecuteTask function completed" -Level "Notice"
     }
 }
 
-
-
-
-# # Example usage of CheckAndExecuteTask function with splatting
+# Example usage:
 # $params = @{
-#     schtaskName            = "MyScheduledTask"
-#     Version                = 1
-#     Path_PR                = "C:\Tasks\MyTask"
-#     ScriptMode             = "Normal"
-#     PackageExecutionContext = "User"
-#     schtaskDescription     = "This is a scheduled task for MyTask"
+#     schtaskName          = "MyScheduledTask"
+#     Path_PR              = "C:\Tasks\MyTask"
+#     ScriptMode           = "Remediation"
+#     PackageExecutionContext = "System"
+#     schtaskDescription   = "Task Description"
+#     RepetitionInterval   = "P1D"
+#     Path_VBShiddenPS     = "C:\Scripts\HiddenPS.vbs"
 # }
-
-# # Call the CheckAndExecuteTask function using splatting
 # CheckAndExecuteTask @params
-
